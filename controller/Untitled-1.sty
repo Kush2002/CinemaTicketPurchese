@@ -1,0 +1,32 @@
+exports.createPurchaseTicket = async (req, res, next) => {
+    try {
+        const { cinemaName, seatnum } = req.body;
+        if (!cinemaName || !seatnum) {
+            return res.status(400).json({ error: 'cinemaName and seatnum are required' });
+        }
+        const cinema = await cinemaModel.findOne({ cinemaName });
+        if (!cinema) {
+            return res.status(404).json({ error: 'Cinema not found' });
+        }
+        if (seatnum > cinema.seatnum) {
+            return res.status(400).json({ error: 'Sorry, This Cinema Provide a 500 Seats.' });
+        }
+        const existingTicket = await PurcheseTicket.findOne({ cinemaName, seatnum });
+        if (existingTicket) {
+            return res.status(400).json({ error: 'Seat already purchased, Please purchase other seat.' });
+        }
+        const purchaseTicket = await PurcheseTicket.create({
+            cinemaName,
+            seatnum
+        });
+        return res.status(201).json({ 
+            status: 'success',
+            data: {
+                purchaseTicket
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
